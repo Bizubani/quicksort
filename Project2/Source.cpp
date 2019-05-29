@@ -1,28 +1,33 @@
-#define _CRT_SECURE_NO_DEPRECATE
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 #define LIMIT 10000
 
 unsigned long recusionCount, comparisonCount;
 void quickSort(int sortThis[], int size);
 
 int main(void) {
-	int sort[LIMIT],count;
+	errno_t errorStatus;
+	int* sort = (int*) calloc(LIMIT, sizeof(int));
+	int count;
 	FILE* ftp;
-	if ((ftp = fopen("QuickSort.txt", "r")) == NULL) {
+	errorStatus = fopen_s(&ftp, "QuickSort.txt", "r");
+	if (errorStatus != 0) {
 		puts("Unable to open QuickSort.txt");
 	}
 	else {
 		for (count = 0; count < LIMIT; count++) {
-			fscanf(ftp, "%d", &sort[count]);
+			if (ftp != NULL && sort != NULL)
+			{
+				fscanf_s(ftp, "%d", &sort[count]);
+			}
+			
 		}
-	}
-	
+	}	
 	quickSort(sort, LIMIT);
-	for (count = 0; count < LIMIT; count++) {
-		printf("%d\n", sort[count]);
-	}
-	printf_s("%u", comparisonCount);
-	getchar();
+
+	printf_s("\nNumber of comparisons %u", comparisonCount);	
+	free(sort);
 	return 0;
 
 }
@@ -32,12 +37,14 @@ void quickSort(int sortThis[], int size) {
 	int partition(int compare[], int left, int right);
 	int findPivot(int a[], int size);
 	int pivot, leftSize, rightSize;
-
+	
 	if (size <= 1) {
 		return;
 	}
 	else {
-		pivot = findPivot(sortThis, size-1); // select first element to be pivot
+		srand(time(NULL));
+		//pivot = findPivot(sortThis, size-1); //choose specific pivots
+		pivot = rand() % size;
 		leftSize = partition(sortThis, pivot, size);
 		rightSize = size - leftSize - 1;
 
@@ -48,37 +55,30 @@ void quickSort(int sortThis[], int size) {
 
 }
 
-int partition(int compare[], int left, int right) {
-	int pivot = compare[left];
+int partition(int subArray[], int pivotPosition, int totalSize) {
+	int pivot = subArray[pivotPosition];
 	int leftSize = 1;
 	int count, temp;
 
-	temp = compare[0];
-	compare[0] =pivot;
-	compare[left] = temp;
+	temp = subArray[0];
+	subArray[0] =pivot;
+	subArray[pivotPosition] = temp;
 
-	comparisonCount += right - 1;
+	comparisonCount += totalSize - 1;
 
-	for (count = leftSize; count < right; count++) {
-		if (pivot > compare[count]) {
-			temp = compare[count];
-			compare[count] = compare[leftSize];
-			compare[leftSize++] = temp;
-			printf("%d ", leftSize);
+	for (count = leftSize; count < totalSize; count++) {
+		if (pivot > subArray[count]) {
+			temp = subArray[count];
+			subArray[count] = subArray[leftSize];
+			subArray[leftSize++] = temp;
 		}
 
 	}
-	puts("");
-	temp = compare[--leftSize];
-	compare[leftSize] = pivot;
-	compare[0] = temp;
+	temp = subArray[--leftSize];
+	subArray[leftSize] = pivot;
+	subArray[0] = temp;
 
-	printf("Recusion Count: %d, Pivot: %d, size of left array: %d\n", ++recusionCount, pivot, leftSize);
-	for (count = 0; count < right; count++) {
-		printf("%d ", compare[count]);
-	}
-	puts("");
-
+	printf("\nRecusion Count: %d, Pivot: %d, size of left array: %d, size of right array: %d\n", ++recusionCount, pivot, leftSize, totalSize - leftSize);
 
 	return leftSize;
 }
